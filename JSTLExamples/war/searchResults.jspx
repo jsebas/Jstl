@@ -1,0 +1,67 @@
+<html xmlns:jsp="http://java.sun.com/JSP/Page" 
+      xmlns:c="http://java.sun.com/jsp/jstl/core">
+  <jsp:output omit-xml-declaration="true" />
+  <jsp:directive.page contentType="text/html" />
+  <jsp:directive.page import="java.io.*" />
+  <head><title>Search Results</title></head>
+  <body>
+    <h1>Results of your Search</h1>
+    <c:import url="urls.txt" var="searchURLs" />
+    <table border="1">
+    <c:set var="filesFound" value="0" />
+	<c:forTokens var="currentURL" items="${searchURLs}" delims="&#010;&#013;">
+    <c:import url="${currentURL}" var="currentFile" />
+    <jsp:scriptlet>
+      String searchWord = request.getParameter("searchWord").toLowerCase();
+      String file = ((String) pageContext.getAttribute("currentFile")).toLowerCase();
+      int foundAt = file.indexOf(searchWord);
+      if (foundAt >= 0) {
+        pageContext.setAttribute("isFound", new Boolean(true));
+        int startAt = 0;
+        if (foundAt > 50) {
+          startAt = foundAt - 50;
+        } else {
+          startAt = 0;
+        }
+        pageContext.setAttribute("startAt", new Integer(startAt));
+      } else {
+        pageContext.setAttribute("isFound", new Boolean(false));
+      }
+    </jsp:scriptlet>
+    
+    <c:if test="${isFound}">
+    <c:set var="filesFound" value="${filesFound + 1}" />
+    <c:import url="${currentURL}" varReader="currentReader" >
+    <jsp:scriptlet><![CDATA[
+       Reader r = (Reader) pageContext.getAttribute("currentReader");
+       long skipAmount = ((Integer) pageContext.getAttribute("startAt")).longValue();
+       r.skip(skipAmount);
+       int i;
+       char c;
+       int counter = 200;
+       StringBuffer sb = new StringBuffer();
+       try {
+			while ((i = r.read()) > -1 && --counter > 0 ) {
+				c = (char) i;
+				if (c == '<') {
+					sb.append("&lt;");
+				} else if (c == '>') {
+					sb.append("&gt;");
+				} else {
+					sb.append(c);
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		pageContext.setAttribute("firstBitOfFile", sb.toString());
+		]]>
+    </jsp:scriptlet>
+    <tr><td><a href="${currentURL}">${currentURL}</a></td><td>${firstBitOfFile}</td></tr>
+    </c:import>
+    </c:if>    
+    </c:forTokens>
+	</table>
+	<p>There were ${filesFound} files which matched your search</p>
+  </body>
+</html>

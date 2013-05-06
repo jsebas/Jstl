@@ -1,0 +1,19 @@
+<html xmlns:jsp="http://java.sun.com/JSP/Page"
+	xmlns:c="http://java.sun.com/jsp/jstl/core">
+<jsp:output omit-xml-declaration="true" />
+<jsp:directive.page contentType="text/html" />
+<head>
+<title>Resultado 2</title>
+</head>
+<body>
+	<c:set var="num" value="${param.num}" />
+	<c:forEach var="i" begin="1" end="${num}" step="1" varStatus="status"> 
+		<c:set var="t" value="text${i}" />
+		Valor del campo ${i}: 
+		<jsp:scriptlet>
+			out.print(request.getParameter((String)pageContext.getAttribute("t")));
+		</jsp:scriptlet>
+		<br/>
+	</c:forEach>
+</body>
+</html>
